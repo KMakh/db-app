@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+
+  app:
+    build: ./app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: app_db
+      DB_PORT: 5432
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:

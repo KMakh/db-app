@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система учета кредитных заявок</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Система учета кредитных заявок</h1>
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="applications">Заявки</button>
+                <button class="tab-button" data-tab="clients">Клиенты</button>
+                <button class="tab-button" data-tab="credit-programs">Кредитные программы</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Applications Section -->
+            <section id="applications" class="tab-content active">
+                <div class="controls">
+                    <div class="search-container">
+                        <input type="text" id="application-search" placeholder="Поиск заявок...">
+                        <button id="application-search-btn">Поиск</button>
+                        <button id="application-reset-btn">Сбросить</button>
+                    </div>
+                    <div class="sort-container">
+                        <label>Сортировка:</label>
+                        <select id="application-sort">
+                            <option value="application_id">ID</option>
+                            <option value="application_date">Дата заявки</option>
+                            <option value="status">Статус</option>
+                            <option value="requested_amount">Сумма</option>
+                        </select>
+                    </div>
+                    <button id="add-application-btn" class="add-btn">Новая заявка</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="application-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Клиент</th>
+                                <th>Программа</th>
+                                <th>Дата</th>
+                                <th>Сумма</th>
+                                <th>Срок (мес)</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Application Modal Form -->
+                <div id="application-modal" class="modal">
+                    <div class="modal-content large-modal">
+                        <span class="close">&times;</span>
+                        <h2 id="application-form-title">Новая заявка</h2>
+                        <form id="application-form">
+                            <input type="hidden" id="application-id">
+                            <div class="form-group">
+                                <label for="client-select">Клиент:</label>
+                                <select id="client-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="program-select">Кредитная программа:</label>
+                                <select id="program-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="application-date">Дата заявки:</label>
+                                <input type="date" id="application-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="requested-amount">Запрашиваемая сумма:</label>
+                                <input type="number" id="requested-amount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="requested-term">Срок (месяцев):</label>
+                                <input type="number" id="requested-term" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="application-status">Статус:</label>
+                                <select id="application-status">
+                                    <option value="Новая">Новая</option>
+                                    <option value="В проверке">В проверке</option>
+                                    <option value="Одобрена">Одобрена</option>
+                                    <option value="Отказано">Отказано</option>
+                                    <option value="Закрыта">Закрыта</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="inspector-comments">Комментарии инспектора:</label>
+                                <textarea id="inspector-comments" rows="3"></textarea>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit">Сохранить</button>
+                                <button type="button" class="cancel-btn">Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Application Details Modal -->
+                <div id="application-details-modal" class="modal">
+                    <div class="modal-content extra-large-modal">
+                        <span class="close">&times;</span>
+                        <h2>Детали заявки <span id="detail-application-id"></span></h2>
+
+                        <div class="details-tabs">
+                            <button class="detail-tab active" data-detail-tab="main-info">Основная информация</button>
+                            <button class="detail-tab" data-detail-tab="scoring">Скоринг</button>
+                            <button class="detail-tab" data-detail-tab="decision">Решение</button>
+                            <button class="detail-tab" data-detail-tab="credit-case">Кредитное дело</button>
+                            <button class="detail-tab" data-detail-tab="documents">Документы</button>
+                            <button class="detail-tab" data-detail-tab="agreement">Договор</button>
+                        </div>
+
+                        <div class="detail-content active" id="main-info">
+                            <div class="detail-section">
+                                <h3>Информация о заявке</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">ID заявки:</span>
+                                        <span id="detail-app-id"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Дата заявки:</span>
+                                        <span id="detail-app-date"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Статус:</span>
+                                        <span id="detail-app-status"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Сумма:</span>
+                                        <span id="detail-app-amount"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Срок (месяцев):</span>
+                                        <span id="detail-app-term"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Комментарии:</span>
+                                        <span id="detail-app-comments"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>Информация о клиенте</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">ФИО:</span>
+                                        <span id="detail-client-name"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Паспорт:</span>
+                                        <span id="detail-client-passport"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Телефон:</span>
+                                        <span id="detail-client-phone"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Email:</span>
+                                        <span id="detail-client-email"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>Кредитная программа</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Название:</span>
+                                        <span id="detail-program-name"></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Базовая ставка:</span>
+                                        <span id="detail-program-rate"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-content" id="scoring">
+                            <div id="no-scoring-message">Скоринг для этой заявки не проводился</div>
+                            <div id="scoring-details" style="display:none;">
+                                <div class="detail-section">
+                                    <h3>Результаты скоринга</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Дата скоринга:</span>
+                                            <span id="detail-scoring-date"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Скоринговый балл:</span>
+                                            <span id="detail-score-value"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Категория риска:</span>
+                                            <span id="detail-risk-category"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Рекомендация ИИ:</span>
+                                            <span id="detail-ai-recommendation"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-content" id="decision">
+                            <div id="no-decision-message">Решение по этой заявке еще не принято</div>
+                            <div id="decision-details" style="display:none;">
+                                <div class="detail-section">
+                                    <h3>Решение по заявке</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Дата решения:</span>
+                                            <span id="detail-decision-date"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Решение:</span>
+                                            <span id="detail-decision-type"></span>
+                                        </div>
+                                        <div class="detail-item" id="rejection-reason-container">
+                                            <span class="detail-label">Причина отказа:</span>
+                                            <span id="detail-rejection-reason"></span>
+                                        </div>
+                                        <div class="detail-item approval-field">
+                                            <span class="detail-label">Одобренная сумма:</span>
+                                            <span id="detail-approved-amount"></span>
+                                        </div>
+                                        <div class="detail-item approval-field">
+                                            <span class="detail-label">Одобренный срок:</span>
+                                            <span id="detail-approved-term"></span>
+                                        </div>
+                                        <div class="detail-item approval-field">
+                                            <span class="detail-label">Одобренная ставка:</span>
+                                            <span id="detail-approved-rate"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Credit Case Tab Content -->
+                        <div class="detail-content" id="credit-case">
+                            <div id="no-case-message">Кредитное дело для этой заявки еще не создано</div>
+                            <div id="credit-case-details" style="display:none;">
+                                <div class="detail-section">
+                                    <h3>Кредитное дело</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="detail-label">ID дела:</span>
+                                            <span id="detail-case-id"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Дата формирования:</span>
+                                            <span id="detail-case-date"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Статус дела:</span>
+                                            <span id="detail-case-status"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Сотрудник-инициатор:</span>
+                                            <span id="detail-case-initiator"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Ответственный сотрудник:</span>
+                                            <span id="detail-case-responsible"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documents Tab Content -->
+                        <div class="detail-content" id="documents">
+                            <div id="no-documents-message">Документы для этого кредитного дела отсутствуют</div>
+                            <div id="documents-details" style="display:none;">
+                                <div class="detail-section">
+                                    <h3>Документы по кредитному делу</h3>
+                                    <table class="details-table" id="documents-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Тип документа</th>
+                                                <th>Имя файла</th>
+                                                <th>Дата загрузки</th>
+                                                <th>Размер</th>
+                                                <th>Действия</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="documents-table-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Credit Agreement Tab Content -->
+                        <div class="detail-content" id="agreement">
+                            <div id="no-agreement-message">Кредитный договор для этой заявки еще не создан</div>
+                            <div id="agreement-details" style="display:none;">
+                                <div class="detail-section">
+                                    <h3>Кредитный договор</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Номер договора:</span>
+                                            <span id="detail-agreement-number"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Дата подписания:</span>
+                                            <span id="detail-agreement-date"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Статус подписания:</span>
+                                            <span id="detail-agreement-status"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Сумма договора:</span>
+                                            <span id="detail-agreement-amount"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Срок (мес):</span>
+                                            <span id="detail-agreement-term"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Процентная ставка:</span>
+                                            <span id="detail-agreement-rate"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Электронная версия:</span>
+                                            <span id="detail-agreement-path"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clients Section -->
+            <section id="clients" class="tab-content">
+                <div class="controls">
+                    <div class="search-container">
+                        <input type="text" id="client-search" placeholder="Поиск клиентов...">
+                        <button id="client-search-btn">Поиск</button>
+                        <button id="client-reset-btn">Сбросить</button>
+                    </div>
+                    <button id="add-client-btn" class="add-btn">Новый клиент</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="client-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ФИО</th>
+                                <th>Паспорт</th>
+                                <th>Телефон</th>
+                                <th>Email</th>
+                                <th>Тип</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Client Modal Form -->
+                <div id="client-modal" class="modal">
+                    <div class="modal-content large-modal">
+                        <span class="close">&times;</span>
+                        <h2 id="client-form-title">Новый клиент</h2>
+                        <form id="client-form">
+                            <input type="hidden" id="client-id">
+                            <div class="form-group">
+                                <label for="full-name">ФИО:</label>
+                                <input type="text" id="full-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="date-of-birth">Дата рождения:</label>
+                                <input type="date" id="date-of-birth" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="passport-series">Серия паспорта:</label>
+                                    <input type="text" id="passport-series" maxlength="4" required>
+                                </div>
+                                <div class="form-group half">
+                                    <label for="passport-number">Номер паспорта:</label>
+                                    <input type="text" id="passport-number" maxlength="6" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="passport-issue-date">Дата выдачи паспорта:</label>
+                                <input type="date" id="passport-issue-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="passport-issuing-authority">Орган, выдавший паспорт:</label>
+                                <input type="text" id="passport-issuing-authority" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Адрес:</label>
+                                <input type="text" id="address" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone-number">Телефон:</label>
+                                <input type="text" id="phone-number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input type="email" id="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="client-type">Тип клиента:</label>
+                                <select id="client-type" required>
+                                    <option value="ФЛ">Физическое лицо</option>
+                                    <option value="ЮЛ">Юридическое лицо</option>
+                                    <option value="ИП">Индивидуальный предприниматель</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="inn">ИНН:</label>
+                                <input type="text" id="inn" maxlength="12">
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit">Сохранить</button>
+                                <button type="button" class="cancel-btn">Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Credit Programs Section -->
+            <section id="credit-programs" class="tab-content">
+                <div class="controls">
+                    <button id="add-program-btn" class="add-btn">Новая кредитная программа</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="program-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Сумма (мин-макс)</th>
+                                <th>Срок (мин-макс)</th>
+                                <th>Ставка</th>
+                                <th>Активна</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Credit Program Modal Form -->
+                <div id="program-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2 id="program-form-title">Новая кредитная программа</h2>
+                        <form id="program-form">
+                            <input type="hidden" id="program-id">
+                            <div class="form-group">
+                                <label for="program-name">Название программы:</label>
+                                <input type="text" id="program-name" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="min-amount">Минимальная сумма:</label>
+                                    <input type="number" id="min-amount" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group half">
+                                    <label for="max-amount">Максимальная сумма:</label>
+                                    <input type="number" id="max-amount" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="min-term">Минимальный срок (мес):</label>
+                                    <input type="number" id="min-term" min="1" required>
+                                </div>
+                                <div class="form-group half">
+                                    <label for="max-term">Максимальный срок (мес):</label>
+                                    <input type="number" id="max-term" min="1" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="interest-rate">Процентная ставка:</label>
+                                <input type="number" id="interest-rate" step="0.01" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="program-description">Описание:</label>
+                                <textarea id="program-description" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="is-active">Активна:</label>
+                                <input type="checkbox" id="is-active" checked>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit">Сохранить</button>
+                                <button type="button" class="cancel-btn">Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
