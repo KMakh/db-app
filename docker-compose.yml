@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   db:
     image: postgres:14
@@ -12,6 +10,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
+      - ./init-db/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./db_backup/wal_archive:/var/lib/postgresql/wal_archive
+    command: ["postgres", "-c", "config_file=/var/lib/postgresql/data/postgresql.conf"]
 
   app:
     build: ./app
