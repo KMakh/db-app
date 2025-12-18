@@ -10,9 +10,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
-      - ./init-db/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./init-db/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db_backup/wal_archive:/var/lib/postgresql/wal_archive
-    command: ["postgres", "-c", "config_file=/var/lib/postgresql/data/postgresql.conf"]
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
   app:
     build: ./app
